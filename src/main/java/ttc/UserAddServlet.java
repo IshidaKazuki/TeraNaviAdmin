@@ -6,6 +6,7 @@
 package ttc;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,6 +36,7 @@ import ttc.exception.integration.IntegrationException;
 
 import java.util.Map;
 import java.util.HashMap;
+import ttc.util.PasswordSaffer;
 
 
 /**
@@ -108,8 +110,14 @@ public class UserAddServlet extends HttpServlet {
 			for(String[] user : users){
 				Map params = new HashMap();
 
-				params.put("loginId",user[0]);
-				params.put("password", user[1]);
+				String loginId = user[0];
+				params.put("loginId",loginId);
+				
+				String password = user[1];
+				
+				password = PasswordSaffer.getStretchedPassword(password, loginId);
+				
+				params.put("password", password);
 				params.put("userName",user[2]);
 				params.put("nameKana",user[3]);
 				params.put("sex",user[4]);
@@ -149,7 +157,12 @@ public class UserAddServlet extends HttpServlet {
 			MySqlConnectionManager.getInstance().commit();
 			MySqlConnectionManager.getInstance().closeConnection();
 
-			request.setAttribute("result", users);
+
+			String responseJson = "{\"responseMessage\" : \"サーブレットからの返信です\"}";
+			response.setContentType("application/json;charset=UTF-8");
+			PrintWriter out = response.getWriter();
+			out.print(responseJson);
+			// request.setAttribute("result", users);
 
 		}catch(IntegrationException e){
 			throw new IOException(e.getMessage(),e);
@@ -158,8 +171,8 @@ public class UserAddServlet extends HttpServlet {
 		}
 
 
-		RequestDispatcher dis = request.getRequestDispatcher("/WEB-INF/jsp/csvAddResult.jsp");
-		dis.forward(request, response);
+		// RequestDispatcher dis = request.getRequestDispatcher("/WEB-INF/jsp/csvAddResult.jsp");
+		// dis.forward(request, response);
 
 	}
 
